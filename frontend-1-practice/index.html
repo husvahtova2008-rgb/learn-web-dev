@@ -17,10 +17,96 @@
 
       Стили пишите в styles.css. Разметку — здесь.
     -->
-
     <div class="page">
-      <!-- Начните отсюда. Разметьте шапку, основную область
-           с календарём и слотами, подвал. -->
+             <header class="header">
+            <div class="logo">LOGO</div>
+            <nav class="nav">
+                <a href="#">Услуги</a>
+                <a href="#">Галерея</a>
+                <a href="#">Команда</a>
+                <a href="#">Отзывы</a>
+                <a href="#">Контакты</a>
+            </nav>
+        </header>
+
+        <div class="progress-bar">
+            <div class="step done">1</div>
+            <div class="line done"></div>
+            <div class="step done">2</div>
+            <div class="line done"></div>
+            <div class="step active">3</div>
+            <div class="line"></div>
+            <div class="step">4</div>
+            <div class="line"></div>
+            <div class="step">5</div>
+        </div>
+
+        <main class="main-content">
+            <div class="title-block">
+                <button class="btn-back">←</button>
+                <h1>Выберите дату и время</h1>
+            </div>
+
+            <div class="booking-container">
+                <section class="calendar-section">
+                    <div class="calendar-header">
+                        <h2>Июнь 2025</h2>
+                        <div class="calendar-nav">
+                            <button>&lt;</button>
+                            <button>&gt;</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="day-name">Пн</div><div class="day-name">Вт</div><div class="day-name">Ср</div><div class="day-name">Чт</div><div class="day-name">Пт</div><div class="day-name">Сб</div><div class="day-name">Вс</div>
+                        
+                        <div class="day old">26</div><div class="day old">27</div><div class="day old">28</div><div class="day old">29</div><div class="day old">30</div><div class="day old">31</div><div class="day">1</div>
+                        <div class="day active">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div>
+                        <div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div>
+                        <div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div>
+                    </div>
+                </section>
+
+                <section class="time-section">
+                    <h2>Доступное время</h2>
+                    <div class="time-grid">
+                        <button class="time-slot">10:00</button>
+                        <button class="time-slot disabled">11:00 <span>Занято</span></button>
+                        <button class="time-slot selected">12:00</button>
+                        <button class="time-slot disabled">13:00 <span>Занято</span></button>
+                        <button class="time-slot">14:00</button>
+                        <button class="time-slot">15:00</button>
+                        <button class="time-slot">16:00</button>
+                        <button class="time-slot">17:00</button>
+                    </div>
+                </section>
+            </div>
+
+            <button class="btn-next">Далее</button>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="logo">LOGO</div>
+                    <p>Дружелюбное описание услуг</p>
+                </div>
+                <div class="footer-contacts">
+                    <h3>КОНТАКТЫ</h3>
+                    <p>ул. Садовая, 15, Москва</p>
+                    <p>+7 (495) 123-45-67</p>
+                </div>
+                <div class="footer-hours">
+                    <h3>РЕЖИМ РАБОТЫ</h3>
+                    <p>Пн–Пт: 9:00 – 21:00</p>
+                    <p>Сб–Вс: 10:00 – 19:00</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026. Все права защищены.</p>
+                <a href="#">Политика конфиденциальности</a>
+            </div>
+        </footer>
+
     </div>
   </body>
 </html>
