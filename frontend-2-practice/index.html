@@ -1,14 +1,88 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Выбор даты и времени</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
     <div class="page">
-      <!-- Перенесите вашу верстку. Удалите статичные данные. Подключите скрипт -->
+        <header class="header">
+            <div class="logo">LOGO</div>
+            <nav class="nav">
+                <a href="#">Услуги</a>
+                <a href="#">Галерея</a>
+                <a href="#">Команда</a>
+                <a href="#">Отзывы</a>
+                <a href="#">Контакты</a>
+            </nav>
+        </header>
+
+        <div class="progress-bar">
+            <div class="step done">1</div>
+            <div class="line done"></div>
+            <div class="step done">2</div>
+            <div class="line done"></div>
+            <div class="step active">3</div>
+            <div class="line"></div>
+            <div class="step">4</div>
+            <div class="line"></div>
+            <div class="step">5</div>
+        </div>
+
+        <main class="main-content">
+            <div class="title-block">
+                <button class="btn-back">←</button>
+                <h1>Выберите дату и время</h1>
+            </div>
+
+            <div class="booking-container">
+                <section class="calendar-section">
+                    <div class="calendar-header">
+                        <h2 id="calendar-month-year">Июнь 2025</h2>
+                        <div class="calendar-nav">
+                            <button id="btn-prev-month">&lt;</button>
+                            <button id="btn-next-month">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </section>
+
+                <section class="time-section">
+                    <h2>Доступное время</h2>
+                    <div class="time-grid" id="time-grid"></div>
+                </section>
+            </div>
+
+            <div class="bottom-info-bar" id="bottom-info-bar"></div>
+
+            <button class="btn-next">Далее</button>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="logo">LOGO</div>
+                    <p>Дружелюбное описание услуг</p>
+                </div>
+                <div class="footer-contacts">
+                    <h3>КОНТАКТЫ</h3>
+                    <p>ул. Садовая, 15, Москва</p>
+                    <p>+7 (495) 123-45-67</p>
+                </div>
+                <div class="footer-hours">
+                    <h3>РЕЖИМ РАБОТЫ</h3>
+                    <p>Пн–Пт: 9:00 – 21:00</p>
+                    <p>Сб–Вс: 10:00 – 19:00</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026. Все права защищены.</p>
+                <a href="#">Политика конфиденциальности</a>
+            </div>
+        </footer>
     </div>
-  </body>
+    <script src="script.js"></script>
+</body>
 </html>
