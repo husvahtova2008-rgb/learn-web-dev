@@ -1,45 +1,66 @@
-// API-клиент. Все запросы к серверу — здесь.
-//
-// Компоненты не должны знать про fetch, URL и JSON. Они вызывают
-// функцию и получают данные или ошибку. Когда backend переедет
-// с JS-имитации на Python — правится только этот файл.
+import { configureStore, createSlice } from '@reduxjs/toolkit';
 
-// Общая обёртка над fetch.
-// Делает запрос, проверяет статус, парсит JSON.
 async function request(url) {
-  const response = await fetch(url);
-
-  // 2xx — всё хорошо. Иначе — кидаем ошибку с текстом от сервера.
-  if (!response.ok) {
-    let message = `HTTP error ${response.status}`;
-    try {
-      const data = await response.json();
-      if (data && data.error) message = data.error;
-    } catch (e) {
-      // Тело не JSON — оставляем базовый текст.
+    const response = await fetch(url);
+    if (!response.ok) {
+        let message = `HTTP error ${response.status}`;
+        try {
+            const data = await response.json();
+            if (data && data.error) message = data.error;
+        } catch (e) {}
+        throw new Error(message);
     }
-    throw new Error(message);
-  }
-
-  return response.json();
+    return response.json();
 }
 
-// GET /api/booking/today
-// Возвращает «сегодня» по мнению сервера: { day, month, year }.
-// Месяц — 0-индексный, как в new Date().
-export async function fetchToday() {
-  return request("/api/booking/today");
-}
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-// GET /api/slots?day=&month=&year=
-// Возвращает слоты для указанной даты.
-// Формат ответа: { date: { day, month, year }, slots: [{ time, available }] }.
-//
-// date в ответе — та же дата, что пришла в запросе. Нужна,
-// чтобы понять, к какому дню относятся слоты. Если пользователь
-// быстро кликает по дням, ответы могут прийти не в том порядке —
-// по этому полю клиент поймёт, какой из них актуальный.
-export async function fetchSlots(date) {
-  const url = `/api/slots?day=${date.day}&month=${date.month}&year=${date.year}`;
-  return request(url);
-}
+const bookingSlice = createSlice({
+    name: 'booking',
+    initialState: {
+        currentYear: today.getFullYear(),
+        currentMonth: today.getMonth(),
+        selectedDate: null,
+        selectedTime: null,
+        availableSlots: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
+    },
+    reducers: {
+        nextMonth: (state) => {
+            if (state.currentMonth === 11) {
+                state.currentMonth = 0;
+                state.currentYear += 1;
+            } else {
+                state.currentMonth += 1;
+            }
+            state.selectedDate = null;
+            state.selectedTime = null;
+        },
+        prevMonth: (state) => {
+            if (state.currentMonth === 0) {
+                state.currentMonth = 11;
+                state.currentYear -= 1;
+            } else {
+                state.currentMonth -= 1;
+            }
+            state.selectedDate = null;
+            state.selectedTime = null;
+        },
+        selectDate: (state, action) => {
+            state.selectedDate = action.payload;
+            state.selectedTime = null;
+        },
+        selectTime: (state, action) => {
+            state.selectedTime = action.payload;
+        }
+    }
+});
+
+export { request };
+export const { nextMonth, prevMonth, selectDate, selectTime } = bookingSlice.actions;
+
+export const store = configureStore({
+    reducer: {
+        booking: bookingSlice.reducer
+    }
+});

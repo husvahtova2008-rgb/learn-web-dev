@@ -1,93 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { fetchToday, fetchSlots } from './api';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { nextMonth, prevMonth, selectDate, selectTime } from './api';
 
 const MONTHS_NOMINATIVE = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 const MONTHS_GENITIVE = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const DAYS_OF_WEEK = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 const DAY_NAMES_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-export default function App() {
-    const [today, setToday] = useState(null);
-    const [currentYear, setCurrentYear] = useState(2026);
-    const [currentMonth, setCurrentMonth] = useState(9);
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const [slots, setSlots] = useState([]);
-    const [isLoadingPage, setIsLoadingPage] = useState(true);
-    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-    const [globalError, setGlobalError] = useState(null);
+function CalendarComponent() {
+    const dispatch = useDispatch();
+    const { currentYear, currentMonth, selectedDate } = useSelector(state => state.booking);
 
-    useEffect(() => {
-        let isMounted = true;
-        fetchToday()
-            .then(data => {
-                if (!isMounted) return;
-                const serverToday = new Date(data.year, data.month, data.day);
-                setToday(serverToday);
-                setCurrentYear(data.year);
-                setCurrentMonth(data.month);
-                setSelectedDate(serverToday);
-                setIsLoadingPage(false);
-            })
-            .catch(() => {
-                if (isMounted) {
-                    setGlobalError('Ошибка сервера при загрузке даты. Пожалуйста, обновите страницу.');
-                    setIsLoadingPage(false);
-                }
-            });
-        return () => { isMounted = false; };
-    }, []);
-
-    useEffect(() => {
-        if (!selectedDate) return;
-        let isMounted = true;
-        setIsLoadingSlots(true);
-
-        fetchSlots(selectedDate)
-            .then(data => {
-                if (!isMounted) return;
-                const formattedDateStr = selectedDate.toISOString().split('T')[0];
-                if (data.date === formattedDateStr) {
-                    setSlots(data.slots || []);
-                }
-                setIsLoadingSlots(false);
-            })
-            .catch(() => {
-                if (isMounted) {
-                    setGlobalError('Не удалось загрузить временные слоты. Попробуйте выбрать другой день.');
-                    setIsLoadingSlots(false);
-                }
-            });
-
-        return () => { isMounted = false; };
-    }, [selectedDate]);
-
-    if (isLoadingPage) return <div className="loading">Загрузка календаря...</div>;
-    if (globalError && !today) return <div className="error">{globalError}</div>;
-
-    const handlePrevMonth = () => {
-        if (currentMonth === 0) {
-            setCurrentMonth(11);
-            setCurrentYear(prev => prev - 1);
-        } else {
-            setCurrentMonth(prev => prev - 1);
-        }
-    };
-
-    const handleNextMonth = () => {
-        if (currentMonth === 11) {
-            setCurrentMonth(0);
-            setCurrentYear(prev => prev + 1);
-        } else {
-            setCurrentMonth(prev => prev + 1);
-        }
-    };
-
-    const handleDayClick = (day) => {
-        setSelectedDate(new Date(currentYear, currentMonth, day));
-        setSelectedTime(null);
-    };
+    const parsedSelectedDate = selectedDate ? new Date(selectedDate) : null;
 
     const getCalendarDays = () => {
         const days = [];
@@ -109,14 +36,125 @@ export default function App() {
         return days;
     };
 
-    const getBottomBarText = () => {
-        if (!selectedDate) return 'Выберите дату и время';
-        const dayOfWeek = DAYS_OF_WEEK[selectedDate.getDay()];
-        const dayNum = selectedDate.getDate();
-        const monthText = MONTHS_GENITIVE[selectedDate.getMonth()];
-        const yearNum = selectedDate.getFullYear();
-        const timeText = selectedTime ? ` • ${selectedTime}` : ' • Время не выбрано';
-        return `${dayOfWeek}, ${dayNum} ${monthText} ${yearNum}${timeText}`;
+    return (
+        <section className="calendar-section">
+            <div className="calendar-header">
+                <h2>{MONTHS_NOMINATIVE[currentMonth]} {currentYear}</h2>
+                <div className="calendar-nav">
+                    <button type="button" onClick={() => dispatch(prevMonth())}>&lt;</button>
+                    <button type="button" onClick={() => dispatch(nextMonth())}>&gt;</button>
+                </div>
+            </div>
+            <div className="calendar-grid">
+                {DAY_NAMES_SHORT.map(name => (
+                    <div key={name} className="day-name">{name}</div>
+                ))}
+                {getCalendarDays().map((item, index) => {
+                    if (item.dayNum === null) {
+                        return <div key={`empty-${index}`} className="day old"></div>;
+                    }
+
+                    const isSelected = parsedSelectedDate && 
+                        parsedSelectedDate.getDate() === item.dayNum && 
+                        parsedSelectedDate.getMonth() === currentMonth && 
+                        parsedSelectedDate.getFullYear() === currentYear;
+
+                    return (
+                        <button
+                            key={`day-${item.dayNum}`}
+                            type="button"
+                            className={`day ${item.isOld ? 'old' : ''} ${isSelected ? 'active' : ''}`}
+                            disabled={item.isOld}
+                            onClick={() => dispatch(selectDate(new Date(currentYear, currentMonth, item.dayNum).toISOString()))}
+                        >
+                            {item.dayNum}
+                        </button>
+                    );
+                })}
+            </div>
+        </section>
+    );
+}
+
+function TimeSlotsComponent() {
+    const dispatch = useDispatch();
+    const { selectedDate, selectedTime, availableSlots } = useSelector(state => state.booking);
+
+    if (!selectedDate) {
+        return (
+            <section className="time-section">
+                <h2>Доступное время</h2>
+                <div className="time-grid">
+                    <p style={{ gridColumn: '1 / -1', color: '#999' }}>Выберите дату для просмотра времени</p>
+                </div>
+            </section>
+        );
+    }
+
+    const parsedDate = new Date(selectedDate);
+    
+    const getDisabledSlotsForDate = (date) => {
+        const day = date.getDate();
+        return day % 2 === 0 ? ['10:00', '14:00', '16:00'] : ['11:00', '13:00'];
+    };
+
+    const disabledSlots = getDisabledSlotsForDate(parsedDate);
+
+    return (
+        <section className="time-section">
+            <h2>Доступное время</h2>
+            <div className="time-grid">
+                {availableSlots.map(time => {
+                    const isDisabled = disabledSlots.includes(time);
+                    const isSelected = selectedTime === time;
+
+                    return (
+                        <button
+                            key={time}
+                            type="button"
+                            className={`time-slot ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
+                            disabled={isDisabled}
+                            onClick={() => dispatch(selectTime(time))}
+                        >
+                            {time}
+                            {isDisabled && <span> Занято</span>}
+                        </button>
+                    );
+                })}
+            </div>
+        </section>
+    );
+}
+
+function BottomInfoBarComponent() {
+    const { selectedDate, selectedTime } = useSelector(state => state.booking);
+
+    if (!selectedDate) {
+        return <div className="bottom-info-bar">Дата и время не выбраны</div>;
+    }
+
+    const parsedDate = new Date(selectedDate);
+    const dayOfWeek = DAYS_OF_WEEK[parsedDate.getDay()];
+    const dayNum = parsedDate.getDate();
+    const monthText = MONTHS_GENITIVE[parsedDate.getMonth()];
+    const yearNum = parsedDate.getFullYear();
+    const timeText = selectedTime ? ` • ${selectedTime}` : ' • Время не выбрано';
+
+    return (
+        <div className="bottom-info-bar">
+            {`${dayOfWeek}, ${dayNum} ${monthText} ${yearNum}${timeText}`}
+        </div>
+    );
+}
+
+export default function App() {
+    const { selectedDate, selectedTime } = useSelector(state => state.booking);
+
+    const handleNextSubmit = () => {
+        if (selectedDate && selectedTime) {
+            const parsedDate = new Date(selectedDate);
+            alert(`Успешная запись через Redux на ${parsedDate.getDate()} ${MONTHS_GENITIVE[parsedDate.getMonth()]} в ${selectedTime}`);
+        }
     };
 
     return (
@@ -137,112 +175,58 @@ export default function App() {
                 <div className="line done"></div>
                 <div className="step done">2</div>
                 <div className="line done"></div>
-                <div className="step active">3</div>
-                <div className="line"></div>
-                <div className="step">4</div>
+                <div className="step done">3</div>
+                <div className="line done"></div>
+                <div className="step active">4</div>
                 <div className="line"></div>
                 <div className="step">5</div>
             </div>
 
             <main className="main-content">
                 <div className="title-block">
-                    <button className="btn-back">←</button>
-                    <h1>Выберите дату и время</h1>
+                    <button className="btn-back" type="button">←</button>
+                    <h1>Выберите дату и время (Redux)</h1>
                 </div>
-
-                {globalError && <div className="error">{globalError}</div>}
 
                 <div className="booking-container">
-                    <section className="calendar-section">
-                        <div className="calendar-header">
-                            <h2>{MONTHS_NOMINATIVE[currentMonth]} {currentYear}</h2>
-                            <div className="calendar-nav">
-                                <button onClick={handlePrevMonth}>&lt;</button>
-                                <button onClick={handleNextMonth}>&gt;</button>
-                            </div>
-                        </div>
-                        <div className="calendar-grid">
-                            {DAY_NAMES_SHORT.map(name => (
-                                <div key={name} className="day-name">{name}</div>
-                            ))}
-                            {getCalendarDays().map((item, index) => {
-                                if (item.dayNum === null) {
-                                    return <div key={`empty-${index}`} className="day old"></div>;
-                                }
-
-                                const isSelected = selectedDate && 
-                                    selectedDate.getDate() === item.dayNum && 
-                                    selectedDate.getMonth() === currentMonth && 
-                                    selectedDate.getFullYear() === currentYear;
-
-                                return (
-                                    <div
-                                        key={`day-${item.dayNum}`}
-                                        className={`day ${item.isOld ? 'old' : ''} ${isSelected ? 'active' : ''}`}
-                                        onClick={item.isOld ? undefined : () => handleDayClick(item.dayNum)}
-                                    >
-                                        {item.dayNum}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </section>
-
-                    <section className="time-section">
-                        <h2>Доступное время</h2>
-                        {isLoadingSlots ? (
-                            <div className="loading">Загрузка слотов...</div>
-                        ) : (
-                            <div className="time-grid">
-                                {slots.map(slotItem => {
-                                    const isSelected = selectedTime === slotItem.time;
-
-                                    return (
-                                        <button
-                                            key={slotItem.time}
-                                            className={`time-slot ${!slotItem.available ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
-                                            disabled={!slotItem.available}
-                                            onClick={() => setSelectedTime(slotItem.time)}
-                                        >
-                                            {slotItem.time}
-                                            {!slotItem.available && <span> Занято</span>}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </section>
+                    <CalendarComponent />
+                    <TimeSlotsComponent />
                 </div>
 
-                <div className="bottom-info-bar">
-                    {getBottomBarText()}
-                </div>
+                <BottomInfoBarComponent />
 
-                <button className="btn-next">Далее</button>
+                <button 
+                    className="btn-next" 
+                    type="button" 
+                    disabled={!selectedDate || !selectedTime}
+                    onClick={handleNextSubmit}
+                >
+                    Далее
+                </button>
             </main>
-        <footer className="footer">
-            <div className="footer-top">
-                <div className="footer-brand">
-                    <div className="logo">LOGO</div>
-                    <p>Дружелюбное описание услуг</p>
-                </div>
-                <div className="footer-contacts">
-                    <h3>КОНТАКТЫ</h3>
-                    <p>ул. Садовая, 15, Москва</p>
-                    <p>+7 (495) 123-45-67</p>
-                </div>
-                <div className="footer-hours">
-                    <h3>РЕЖИМ РАБОТЫ</h3>
-                    <p>Пн–Пт: 9:00 – 21:00</p>
-                    <p>Сб–Вс: 10:00 – 19:00</p>
-                </div>
-            </div>
-            <div className="footer-bottom">
-                <p>© 2026. Все права защищены.</p>
-                <a href="#">Политика конфиденциальности</a>
-            </div>
-        </footer>
-    </div>
-  );
-}
 
+            <footer className="footer">
+                <div className="footer-top">
+                    <div className="footer-brand">
+                        <div className="logo">LOGO</div>
+                        <p>Дружелюбное описание услуг</p>
+                    </div>
+                    <div className="footer-contacts">
+                        <h3>КОНТАКТЫ</h3>
+                        <p>ул. Садовая, 15, Москва</p>
+                        <p>+7 (495) 123-45-67</p>
+                    </div>
+                    <div className="footer-hours">
+                        <h3>РЕЖИМ РАБОТЫ</h3>
+                        <p>Пн–Пт: 9:00 – 21:00</p>
+                        <p>Сб–Вс: 10:00 – 19:00</p>
+                    </div>
+                </div>
+                <div className="footer-bottom">
+                    <p>© 2026. Все права защищены.</p>
+                    <a href="#">Политика конфиденциальности</a>
+                </div>
+            </footer>
+        </div>
+    );
+}
